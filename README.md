@@ -6,7 +6,7 @@ Feel free to copy this and expand/modify however desired. I'm still learning Pyt
 Referenced Stream:
 
 [DougDoug's Peggle Roguelike Stream](https://www.twitch.tv/videos/2278564921)
-<video src="https://www.twitch.tv/videos/2278564921">
+[<img src="https://github.com/user-attachments/assets/bfb288f3-51be-4706-bd01-44c5555e6948">](https://www.twitch.tv/videos/2278564921)
 
 Features I want to add:
 - Interactive map board
