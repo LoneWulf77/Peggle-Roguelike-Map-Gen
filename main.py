@@ -16,7 +16,6 @@ import math
 from PIL import Image, ImageDraw, ImageFont
 font = ImageFont.truetype("C:\Windows\Fonts\ARLRDBD.TTF", 30)
 
-
 #chapters in game
 chap = 11           # EDIT THIS FOR NUMBER OF CHAPTERS
 #levels per chapter
@@ -74,6 +73,7 @@ def stage_roll(difficulty):
     if len(unique_stages) <= 0:
         print("not enough levels")
         quit()
+
     match difficulty:
         case "easy":
             stage = unique_stages.pop(random.randint(0, math.ceil(total_stages * .33)))
