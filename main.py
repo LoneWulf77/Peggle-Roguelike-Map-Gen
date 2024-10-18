@@ -5,9 +5,7 @@
 
 
 # currently want to auto populate map first
-# second is add ui to handle inventory
-
-#  will need to remove the option on each choice, or minimize duplicates
+# second is add ui/click events
 
 # image filenames for levels should be named in the style "1-1.png"
 # image for heroes should be named matching the heroes list "Bjorn.png"
@@ -16,8 +14,14 @@
 import random
 import math
 from PIL import Image, ImageDraw, ImageFont
-
 font = ImageFont.truetype("C:\Windows\Fonts\ARLRDBD.TTF", 30)
+
+
+#chapters in game
+chap = 11           # EDIT THIS FOR NUMBER OF CHAPTERS
+#levels per chapter
+lvls = 5           # EDIT THIS FOR NUMBER OF LEVELS IN EACH CHAPTER
+
 
 # draw board
 board = Image.open('images/board.png').convert("RGBA")
@@ -42,10 +46,6 @@ row_height = [180, 375, 555, 730, 910, 1085]
 rows, cols = (6, 5)
 coords = [row1, row2, row3, row4, row5, row6]
 
-#chapters in game
-chap = 11
-#levels per chapter
-lvls = 5
 
 # array of all peggle maps (constant)
 LEVELS = []
@@ -63,17 +63,15 @@ unique_heroes = HEROES.copy()
 total_heroes = len(HEROES)
 hero = ""
 
-
 # array/list of main map
 main_map = []
 
-print("unique_heroes[] ", unique_heroes)
 
-# add chapter-level and hero to map slot
+# rolls a unique stage   NEED TO MODIFY THE RANDOMS TO BE BASED ON CHAPTERS, WHILE ALLOWING POP() TO KEEP LEVELS UNIQUE
 def stage_roll(difficulty):
     global stage
     global LEVELS
-    if len(unique_stages) <= len(LEVELS)/3:
+    if len(unique_stages) <= 0:
         print("not enough levels")
         quit()
     match difficulty:
@@ -88,6 +86,7 @@ def stage_roll(difficulty):
 
     return stage
 
+# rolls hero semi-unique value
 def hero_roll():
     # roll rng, pull a hero from array, put in main map/dict
     global unique_heroes
@@ -97,43 +96,45 @@ def hero_roll():
     hero = unique_heroes.pop(random.randint(0, len(unique_heroes)-1))
     return hero
 
+# add chapter-level and hero to map slot
 def add_slot(diff):
     # add slot to main_map
     slot = stage_roll(diff) + " " + hero_roll()
     main_map.append(slot)
 
+# circle crop for stages/heroes
+def circle_crop(img):
+    m = Image.new('L', img.size, 0)
+    md = ImageDraw.Draw(m)
+    md.ellipse((0, 0, img.size), fill=255)
+    return m
 
 # roll rng, pull 3 heroes from array, put in starting inventory (unique ideally)
 inventory = random.sample(HEROES, 3)
 
-# generate main_map slots
-# how many rows in map? how many slots per row (range 3-5?)
-
+# how many rows in map? how many slots per row (range 3-5?)   FUTURE CREATING CUSTOM MAP
 # hard coding number of slots for each difficulty based on board map
 boss = 1
 hard = 3
 medium = 9
 easy = 8
 
-# add boss
+# add boss stages
 add_slot("boss")
-# add hard
+# add hard stages
 for i in range(hard):
     add_slot("hard")
-# add medium
+# add medium stages
 for i in range(medium):
     add_slot("medium")
-# add easy
+# add easy stages
 for i in range(easy):
     add_slot("easy")
-
-print("main_map[] = ", main_map)
-print("inventory ", inventory)
 
 
 main_map_i = 0  # main_map[] iterator
 
-# cycle through main_map to add images to board
+# cycle through coords on board for each slot   PROBABLY CAN BE WRITTEN BETTER
 for i in range(rows):
     x = row_height[i]
 
@@ -143,40 +144,31 @@ for i in range(rows):
         if main_map_i >= len(main_map):
             break
 
+        #pull and draw cropped stage image
         stage = Image.open("images/stages/" + main_map[main_map_i].split()[0] + ".webp").convert("RGBA")
         stage = stage.resize((100, 100))
+        board.paste(stage, (coords[i][j]-50, x-50), mask=circle_crop(stage))
 
-        # crop stage image into a circle diameter of 130
-        mask = Image.new('L', stage.size, 0)
-        mask_draw = ImageDraw.Draw(mask)
-        mask_draw.ellipse((0, 0, stage.size), fill=255)
-        board.paste(stage, (coords[i][j]-50, x-50), mask=mask)
-
-        # stage text
+        # stage text displayed
         ImageDraw.Draw(board).text((coords[i][j], x), main_map[main_map_i].split()[0], font=font, fill="white",
                                    stroke_fill="black", stroke_width=2, anchor="mm")
 
-        # hero at slot
+        #pull and draw cropped hero image
         hero = Image.open("images/heroes/" + main_map[main_map_i].split()[1] + ".webp")
         hero = hero.resize((50, 50))
+        board.paste(hero, (coords[i][j]+20, x+20), mask=circle_crop(hero))
 
-        # crop stage image into a circle diameter of 130
-        mask = Image.new('L', hero.size, 0)
-        mask_draw = ImageDraw.Draw(mask)
-        mask_draw.ellipse((0, 0, hero.size), fill=255)
-
-        board.paste(hero, (coords[i][j]+20, x+20), mask=mask)
-
-        main_map_i += 1
+        main_map_i += 1   # increment to next slot
 
     #break if main_map[x] out of range
     if main_map_i >= len(main_map):
         break
 
+
+# inventory display             BETTER USE AND FUNCTIONALITY WIP
 for inv in range(len(inventory)):
     hero = Image.open("images/heroes/" + inventory[inv] + ".webp")
     hero = hero.resize((70, 70))
-
     board.paste(hero, (650+(80*inv), 1250))
 
 board.show()
