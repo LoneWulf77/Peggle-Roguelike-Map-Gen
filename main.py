@@ -119,10 +119,12 @@ def str_response(question):
         try:
             answer = input(question)
             answer.lower().strip()
-            if answer == "cancel" or answer == "yes" or answer == "no":
+            if answer == "cancel":
                 break
         except ValueError:
             print("ValueError. Please input a proper answer or \"cancel\"")
+        else:
+            break
     return answer
 
 # int input (absolute value)
