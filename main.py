@@ -1,14 +1,17 @@
-# doug doug's twitch chat peggle roguelike stream
-# -build a map/hero generator
-# -idea to show the chapter number on all hidden slots, only show the levels of the next row
-# -future qol plan, have integration with peggle to auto open/select hero
+"""
+    DougDoug's twitch chat Peggle roguelike stream
+    -build a map/hero generator
+    -idea to show the chapter number on all hidden slots, only show the levels of the next row
+    -future qol plan, have integration with Peggle to auto open/select hero
 
 
-# currently want to auto populate map first
-# second is add ui/click events
+    currently want to auto-populate default map first (done)
+    second is add ui/click events
+    third is to generate custom map based on customization variables (WIP)
 
-# image filenames for levels should be named in the style "1-1.png"
-# image for heroes should be named matching the heroes list "Bjorn.png"
+    image filenames for levels should be named in the style "1-1.png"
+    image for heroes should be named matching the heroes list "Bjorn.png"
+"""
 
 
 import random
@@ -25,7 +28,7 @@ lvls = 5           # EDIT THIS FOR NUMBER OF LEVELS IN EACH CHAPTER
 # draw board
 board = Image.open('images/board.png').convert("RGBA")
 
-# board coords list
+# board coords list             WILL BE DEPRECIATED ONCE AUTOMATIC GENERATION IS COMPLETE
 # canvas 950 x 1350
 # 490/180                                   x=185
 # 235/380 515/380 750/380                   x=380
@@ -109,15 +112,106 @@ def circle_crop(img):
     md.ellipse((0, 0, img.size), fill=255)
     return m
 
-# roll rng, pull 3 heroes from array, put in starting inventory (unique ideally)
-inventory = random.sample(HEROES, 3)
+#string input (lowercase and leading/trailing spaces removed)
+def str_response(question):
+    answer = ''
+    while True:
+        try:
+            answer = input(question)
+            answer.lower().strip()
+            if answer == "cancel" or answer == "yes" or answer == "no":
+                break
+        except ValueError:
+            print("ValueError. Please input a proper answer or \"cancel\"")
+    return answer
+
+# int input (absolute value)
+def int_response(question):
+    answer = ''
+    while True:
+        try:
+            answer = input(question)
+            if answer.lower() == "cancel":
+                break
+            abs(int(answer))
+        except ValueError:
+            print("ValueError. Please input a proper whole number or \"cancel\"")
+            continue
+        else:
+            break
+    return answer
+
+#reset custom variables to default
+def default_custom():
+    global custom_vars
+    custom_vars.clear()
+    custom_vars = {"levels": 6, "min_options": 3, "max_options": 5, "response": '', "customizing": False}
 
 # how many rows in map? how many slots per row (range 3-5?)   FUTURE CREATING CUSTOM MAP
+# initializing custom variables default
+levels, min_options, max_options, inv_size, response, customizing = 6, 3, 5, 3, '', False
+custom_vars = {"levels": levels, "minimum options": min_options, "maximum options": max_options, "inventory size": inv_size, "response": response, "customizing": customizing}
+
+# ask if custom map
+while True:
+    response = str_response("Do you want to create a fully customized map? (yes/no)\n")
+    if response == "yes":
+        customizing = True
+        break
+    elif response == "no" or response == "cancel":
+        default_custom()
+        break
+    else:
+        print("Invalid response. Please input yes, no, or cancel.")
+
+# custom build map (can have choices such as: specify how many options, level by level, and what difficulty the level is designed to be)
+# customizing can probably be moved to its own file
+while customizing:
+    # display current variable values
+    print(custom_vars)
+    response = str_response("Please enter which variable you would like to change, \"reset\" to reset to default values, or \"done\" if finished:\n")
+
+    match response:
+        case "cancel":
+            # confirm?
+            response = str_response("Are you sure you want to cancel customization and use default values? (yes/no)\n")
+            if response == "yes":
+                default_custom()
+                break
+            elif response == "no":
+                pass
+            else:
+                print("Invalid response. Please input yes or no.\n")
+        case "levels":
+            # how many levels?
+            levels = int_response("How many levels in map?\n")
+        case "minimum options":
+            # minimum options per level?
+            min_options = int_response("Minimum options per level:\n")
+        case "maximum options":
+            # maximum options per level?
+            max_options = int_response("Maximum options per level:\n")
+        case "inventory size":
+            #inventory size?
+            inv_size = int_response("How many inventory slots?\n")
+        case "done":
+            print(custom_vars)
+            response = str_response("Are you done customizing your map with the above values? (yes/no)\n")
+            if response == "yes":
+                break
+        case "reset":
+            default_custom()
+            customizing = True
+        case _:
+            print("Please enter a valid option.")
+
+
 # hard coding number of slots for each difficulty based on board map
 boss = 1
 hard = 3
 medium = 9
 easy = 8
+inv_size = 3
 
 # add boss stages
 add_slot("boss")
@@ -133,6 +227,8 @@ for i in range(easy):
 
 
 main_map_i = 0  # main_map[] iterator
+inventory = random.sample(HEROES, inv_size) # fill inventory slots with 3 random unique heroes
+
 
 # cycle through coords on board for each slot   PROBABLY CAN BE WRITTEN BETTER
 for i in range(rows):
