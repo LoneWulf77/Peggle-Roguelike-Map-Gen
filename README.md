@@ -1,5 +1,6 @@
 This is a simple map generator for DougDoug's peggle roguelike idea from his stream on Oct. 17th.
 Feel free to copy this and expand/modify however desired. I'm still learning Python and using this project as a base to add on to.
+Requires: Python 3.13.7, pillow-11.3.0
 
 ![Example Result](https://github.com/user-attachments/assets/9eda0bcd-b69c-4b7a-b717-fab4d1204df2)
 
